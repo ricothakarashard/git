@@ -142,7 +142,15 @@ command in `builtin/psuh.c`. Create that file, and within it, write the entry
 point for your command in a function matching the style and signature:
 
 ----
-int cmd_psuh(int argc, const char **argv, const char *prefix)
+int cmd_psuh(int argc, const char **argv, const char *prefix, struct repository *repo)
+----
+
+We also use the UNUSED macro to make sure we don't recieve compiler warnings
+for unused arguments from the function cmd_psuh.
+
+----
+int cmd_psuh(int argc UNUSED, const char **argv UNUSED, 
+			const char *prefix UNUSED, struct repository *repo UNUSED)
 ----
 
 We'll also need to add the declaration of psuh; open up `builtin.h`, find the
