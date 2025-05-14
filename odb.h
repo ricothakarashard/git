@@ -21,6 +21,9 @@ struct repository;
 struct odb_alternate {
 	struct odb_alternate *next;
 
+	/* Object database that owns this alternate. */
+	struct object_database *odb;
+
 	/*
 	 * Used to store the results of readdir(3) calls when we are OK
 	 * sacrificing accuracy due to races for speed. That includes
@@ -98,6 +101,9 @@ struct cached_object_entry;
  * configured via alternates.
  */
 struct object_database {
+	/* Repository that owns this database. */
+	struct repository *repo;
+
 	/*
 	 * Set of all object directories; the main directory is first (and
 	 * cannot be NULL after initialization). Subsequent directories are
@@ -179,7 +185,7 @@ struct object_database {
 	unsigned packed_git_initialized : 1;
 };
 
-struct object_database *odb_new(void);
+struct object_database *odb_new(struct repository *repo);
 void odb_clear(struct object_database *o);
 
 /*

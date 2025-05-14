@@ -52,7 +52,7 @@ static void set_default_hash_algo(struct repository *repo)
 
 void initialize_repository(struct repository *repo)
 {
-	repo->objects = odb_new();
+	repo->objects = odb_new(repo);
 	repo->remote_state = remote_state_new();
 	repo->parsed_objects = parsed_object_pool_new(repo);
 	ALLOC_ARRAY(repo->index, 1);
@@ -167,6 +167,7 @@ void repo_set_gitdir(struct repository *repo,
 
 	if (!repo->objects->alternates) {
 		CALLOC_ARRAY(repo->objects->alternates, 1);
+		repo->objects->alternates->odb = repo->objects;
 		repo->objects->alternates_tail = &repo->objects->alternates->next;
 	}
 	expand_base_dir(&repo->objects->alternates->path, o->object_dir,
