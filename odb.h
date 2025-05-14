@@ -66,17 +66,6 @@ struct odb_alternate {
 	char *path;
 };
 
-/*
- * Replace the current writable object directory with the specified temporary
- * object directory; returns the former primary object directory.
- */
-struct odb_alternate *set_temporary_primary_odb(const char *dir, int will_destroy);
-
-/*
- * Restore a previous ODB replaced by set_temporary_main_odb.
- */
-void restore_primary_odb(struct odb_alternate *restore_alternate, const char *old_path);
-
 struct packed_git;
 struct multi_pack_index;
 struct cached_object_entry;
@@ -179,6 +168,20 @@ void odb_clear(struct object_database *o);
  * couldn't be found.
  */
 struct odb_alternate *odb_find_alternate(struct object_database *odb, const char *obj_dir);
+
+/*
+ * Replace the current writable object directory with the specified temporary
+ * object directory; returns the former primary alternate.
+ */
+struct odb_alternate *odb_set_temporary_primary_alternate(struct object_database *odb,
+							  const char *dir, int will_destroy);
+
+/*
+ * Restore a previous bakcend replaced by `odb_set_temporary_primary_alternate()`.
+ */
+void odb_restore_primary_alternate(struct object_database *odb,
+				   struct odb_alternate *restore_alt,
+				   const char *old_path);
 
 /*
  * Iterate through all alternates of the database and execute the provided

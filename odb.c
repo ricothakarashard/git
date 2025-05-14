@@ -329,7 +329,8 @@ void odb_add_to_alternates_memory(struct object_database *odb,
 			     '\n', NULL, 0);
 }
 
-struct odb_alternate *set_temporary_primary_odb(const char *dir, int will_destroy)
+struct odb_alternate *odb_set_temporary_primary_alternate(struct object_database *odb,
+							  const char *dir, int will_destroy)
 {
 	struct odb_alternate *alternate;
 
@@ -337,14 +338,14 @@ struct odb_alternate *set_temporary_primary_odb(const char *dir, int will_destro
 	 * Make sure alternates are initialized, or else our entry may be
 	 * overwritten when they are.
 	 */
-	odb_prepare_alternates(the_repository->objects);
+	odb_prepare_alternates(odb);
 
 	/*
 	 * Make a new primary odb and link the old primary ODB in as an
 	 * alternate
 	 */
 	alternate = xcalloc(1, sizeof(*alternate));
-	alternate->odb = the_repository->objects;
+	alternate->odb = odb;
 	alternate->path = xstrdup(dir);
 
 	/*
@@ -353,8 +354,8 @@ struct odb_alternate *set_temporary_primary_odb(const char *dir, int will_destro
 	 */
 	alternate->disable_ref_updates = 1;
 	alternate->will_destroy = will_destroy;
-	alternate->next = the_repository->objects->alternates;
-	the_repository->objects->alternates = alternate;
+	alternate->next = odb->alternates;
+	odb->alternates = alternate;
 	return alternate->next;
 }
 
@@ -366,9 +367,11 @@ static void free_object_directory(struct odb_alternate *alternate)
 	free(alternate);
 }
 
-void restore_primary_odb(struct odb_alternate *restore_alt, const char *old_path)
+void odb_restore_primary_alternate(struct object_database *odb,
+				   struct odb_alternate *restore_alt,
+				   const char *old_path)
 {
-	struct odb_alternate *cur_alt = the_repository->objects->alternates;
+	struct odb_alternate *cur_alt = odb->alternates;
 
 	if (strcmp(old_path, cur_alt->path))
 		BUG("expected %s as primary object store; found %s",
@@ -377,7 +380,7 @@ void restore_primary_odb(struct odb_alternate *restore_alt, const char *old_path
 	if (cur_alt->next != restore_alt)
 		BUG("we expect the old primary object store to be the first alternate");
 
-	the_repository->objects->alternates = restore_alt;
+	odb->alternates = restore_alt;
 	free_object_directory(cur_alt);
 }
 
