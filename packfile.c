@@ -1018,16 +1018,16 @@ static void prepare_packed_git_mru(struct repository *r)
 
 static void prepare_packed_git(struct repository *r)
 {
-	struct object_directory *odb;
+	struct odb_alternate *alternate;
 
 	if (r->objects->packed_git_initialized)
 		return;
 
 	prepare_alt_odb(r);
-	for (odb = r->objects->odb; odb; odb = odb->next) {
-		int local = (odb == r->objects->odb);
-		prepare_multi_pack_index_one(r, odb->path, local);
-		prepare_packed_git_one(r, odb->path, local);
+	for (alternate = r->objects->alternates; alternate; alternate = alternate->next) {
+		int local = (alternate == r->objects->alternates);
+		prepare_multi_pack_index_one(r, alternate->path, local);
+		prepare_packed_git_one(r, alternate->path, local);
 	}
 	rearrange_packed_git(r);
 
@@ -1037,7 +1037,7 @@ static void prepare_packed_git(struct repository *r)
 
 void reprepare_packed_git(struct repository *r)
 {
-	struct object_directory *odb;
+	struct odb_alternate *alternate;
 
 	obj_read_lock();
 
@@ -1050,8 +1050,8 @@ void reprepare_packed_git(struct repository *r)
 	r->objects->loaded_alternates = 0;
 	prepare_alt_odb(r);
 
-	for (odb = r->objects->odb; odb; odb = odb->next)
-		odb_clear_loose_cache(odb);
+	for (alternate = r->objects->alternates; alternate; alternate = alternate->next)
+		odb_clear_loose_cache(alternate);
 
 	r->objects->approximate_object_count_valid = 0;
 	r->objects->packed_git_initialized = 0;

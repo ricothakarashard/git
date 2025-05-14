@@ -965,7 +965,7 @@ int cmd_fsck(int argc,
 	     struct repository *repo UNUSED)
 {
 	int i;
-	struct object_directory *odb;
+	struct odb_alternate *alternate;
 
 	/* fsck knows how to handle missing promisor objects */
 	fetch_if_missing = 0;
@@ -1007,8 +1007,8 @@ int cmd_fsck(int argc,
 				       mark_packed_for_connectivity, NULL, 0);
 	} else {
 		prepare_alt_odb(the_repository);
-		for (odb = the_repository->objects->odb; odb; odb = odb->next)
-			fsck_object_dir(odb->path);
+		for (alternate = the_repository->objects->alternates; alternate; alternate = alternate->next)
+			fsck_object_dir(alternate->path);
 
 		if (check_full) {
 			struct packed_git *p;
@@ -1118,11 +1118,11 @@ int cmd_fsck(int argc,
 		struct child_process commit_graph_verify = CHILD_PROCESS_INIT;
 
 		prepare_alt_odb(the_repository);
-		for (odb = the_repository->objects->odb; odb; odb = odb->next) {
+		for (alternate = the_repository->objects->alternates; alternate; alternate = alternate->next) {
 			child_process_init(&commit_graph_verify);
 			commit_graph_verify.git_cmd = 1;
 			strvec_pushl(&commit_graph_verify.args, "commit-graph",
-				     "verify", "--object-dir", odb->path, NULL);
+				     "verify", "--object-dir", alternate->path, NULL);
 			if (show_progress)
 				strvec_push(&commit_graph_verify.args, "--progress");
 			else
@@ -1136,11 +1136,11 @@ int cmd_fsck(int argc,
 		struct child_process midx_verify = CHILD_PROCESS_INIT;
 
 		prepare_alt_odb(the_repository);
-		for (odb = the_repository->objects->odb; odb; odb = odb->next) {
+		for (alternate = the_repository->objects->alternates; alternate; alternate = alternate->next) {
 			child_process_init(&midx_verify);
 			midx_verify.git_cmd = 1;
 			strvec_pushl(&midx_verify.args, "multi-pack-index",
-				     "verify", "--object-dir", odb->path, NULL);
+				     "verify", "--object-dir", alternate->path, NULL);
 			if (show_progress)
 				strvec_push(&midx_verify.args, "--progress");
 			else

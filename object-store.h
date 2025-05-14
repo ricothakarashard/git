@@ -12,8 +12,14 @@ struct oidtree;
 struct strbuf;
 struct repository;
 
-struct object_directory {
-	struct object_directory *next;
+/*
+ * The alternate is the part of the object database that stores the actual
+ * objects. It thus encapsulates the logic to read and write the specific
+ * on-disk format. An object database can have multiple alternates, and
+ * exactly one primary alternate that is used when writing new objects.
+ */
+struct odb_alternate {
+	struct odb_alternate *next;
 
 	/*
 	 * Used to store the results of readdir(3) calls when we are OK
@@ -52,8 +58,8 @@ struct object_directory {
 void prepare_alt_odb(struct repository *r);
 int has_alt_odb(struct repository *r);
 char *compute_alternate_path(const char *path, struct strbuf *err);
-struct object_directory *find_odb(struct repository *r, const char *obj_dir);
-typedef int alt_odb_fn(struct object_directory *, void *);
+struct odb_alternate *find_odb(struct repository *r, const char *obj_dir);
+typedef int alt_odb_fn(struct odb_alternate *, void *);
 int foreach_alt_odb(alt_odb_fn, void*);
 typedef void alternate_ref_fn(const struct object_id *oid, void *);
 void for_each_alternate_ref(alternate_ref_fn, void *);
@@ -75,12 +81,12 @@ void add_to_alternates_memory(const char *dir);
  * Replace the current writable object directory with the specified temporary
  * object directory; returns the former primary object directory.
  */
-struct object_directory *set_temporary_primary_odb(const char *dir, int will_destroy);
+struct odb_alternate *set_temporary_primary_odb(const char *dir, int will_destroy);
 
 /*
  * Restore a previous ODB replaced by set_temporary_main_odb.
  */
-void restore_primary_odb(struct object_directory *restore_odb, const char *old_path);
+void restore_primary_odb(struct odb_alternate *restore_alternate, const char *old_path);
 
 struct packed_git;
 struct multi_pack_index;
@@ -88,7 +94,7 @@ struct cached_object_entry;
 
 /*
  * The object database encapsulates access to objects in a repository. It
- * manages one or more backends that store the actual objects which are
+ * manages one or more alternates that store the actual objects which are
  * configured via alternates.
  */
 struct object_database {
@@ -97,16 +103,16 @@ struct object_database {
 	 * cannot be NULL after initialization). Subsequent directories are
 	 * alternates.
 	 */
-	struct object_directory *odb;
-	struct object_directory **odb_tail;
-	struct kh_odb_path_map *odb_by_path;
+	struct odb_alternate *alternates;
+	struct odb_alternate **alternates_tail;
+	struct kh_odb_path_map *alternate_by_path;
 
 	int loaded_alternates;
 
 	/*
 	 * A list of alternate object directories loaded from the environment;
 	 * this should not generally need to be accessed directly, but will
-	 * populate the "odb" list when prepare_alt_odb() is run.
+	 * populate the "alternates" list when prepare_alt_odb() is run.
 	 */
 	char *alternate_db;
 
