@@ -106,7 +106,7 @@ static int check_and_freshen_nonlocal(const struct object_id *oid, int freshen)
 {
 	struct odb_alternate *alternate;
 
-	prepare_alt_odb(the_repository);
+	odb_prepare_alternates(the_repository->objects);
 	for (alternate = the_repository->objects->alternates->next; alternate; alternate = alternate->next) {
 		if (check_and_freshen_odb(alternate, oid, freshen))
 			return 1;
@@ -211,7 +211,7 @@ static int stat_loose_object(struct repository *r, const struct object_id *oid,
 	struct odb_alternate *alternate;
 	static struct strbuf buf = STRBUF_INIT;
 
-	prepare_alt_odb(r);
+	odb_prepare_alternates(r->objects);
 	for (alternate = r->objects->alternates; alternate; alternate = alternate->next) {
 		*path = odb_loose_path(alternate, &buf, oid);
 		if (!lstat(*path, st))
@@ -233,7 +233,7 @@ static int open_loose_object(struct repository *r,
 	int most_interesting_errno = ENOENT;
 	static struct strbuf buf = STRBUF_INIT;
 
-	prepare_alt_odb(r);
+	odb_prepare_alternates(r->objects);
 	for (alternate = r->objects->alternates; alternate; alternate = alternate->next) {
 		*path = odb_loose_path(alternate, &buf, oid);
 		fd = git_open(*path);
@@ -252,7 +252,7 @@ static int quick_has_loose(struct repository *r,
 {
 	struct odb_alternate *alternate;
 
-	prepare_alt_odb(r);
+	odb_prepare_alternates(r->objects);
 	for (alternate = r->objects->alternates; alternate; alternate = alternate->next) {
 		if (oidtree_contains(odb_loose_cache(alternate, oid), oid))
 			return 1;
@@ -1542,7 +1542,7 @@ int for_each_loose_object(each_loose_object_fn cb, void *data,
 {
 	struct odb_alternate *alternate;
 
-	prepare_alt_odb(the_repository);
+	odb_prepare_alternates(the_repository->objects);
 	for (alternate = the_repository->objects->alternates; alternate; alternate = alternate->next) {
 		int r = for_each_loose_file_in_objdir(alternate->path, cb, NULL,
 						      NULL, data);
