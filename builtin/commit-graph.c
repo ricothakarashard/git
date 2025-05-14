@@ -101,7 +101,7 @@ static int graph_verify(int argc, const char **argv, const char *prefix,
 	if (opts.progress)
 		flags |= COMMIT_GRAPH_WRITE_PROGRESS;
 
-	alternate = find_odb(the_repository, opts.obj_dir);
+	alternate = odb_find_alternate(the_repository->objects, opts.obj_dir);
 	graph_name = get_commit_graph_filename(alternate);
 	chain_name = get_commit_graph_chain_filename(alternate);
 	if (open_commit_graph(graph_name, &fd, &st))
@@ -289,7 +289,7 @@ static int graph_write(int argc, const char **argv, const char *prefix,
 	    git_env_bool(GIT_TEST_COMMIT_GRAPH_CHANGED_PATHS, 0))
 		flags |= COMMIT_GRAPH_WRITE_BLOOM_FILTERS;
 
-	alternate = find_odb(the_repository, opts.obj_dir);
+	alternate = odb_find_alternate(the_repository->objects, opts.obj_dir);
 
 	if (opts.reachable) {
 		if (write_commit_graph_reachable(alternate, flags, &write_opts))

@@ -448,14 +448,14 @@ out:
 	return ref_git;
 }
 
-struct odb_alternate *find_odb(struct repository *r, const char *obj_dir)
+struct odb_alternate *odb_find_alternate(struct object_database *odb, const char *obj_dir)
 {
 	struct odb_alternate *alternate;
 	char *obj_dir_real = real_pathdup(obj_dir, 1);
 	struct strbuf odb_path_real = STRBUF_INIT;
 
-	prepare_alt_odb(r);
-	for (alternate = r->objects->alternates; alternate; alternate = alternate->next) {
+	prepare_alt_odb(odb->repo);
+	for (alternate = odb->alternates; alternate; alternate = alternate->next) {
 		strbuf_realpath(&odb_path_real, alternate->path, 1);
 		if (!strcmp(obj_dir_real, odb_path_real.buf))
 			break;

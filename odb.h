@@ -61,7 +61,6 @@ struct odb_alternate {
 void prepare_alt_odb(struct repository *r);
 int has_alt_odb(struct repository *r);
 char *compute_alternate_path(const char *path, struct strbuf *err);
-struct odb_alternate *find_odb(struct repository *r, const char *obj_dir);
 typedef int alt_odb_fn(struct odb_alternate *, void *);
 int foreach_alt_odb(alt_odb_fn, void*);
 typedef void alternate_ref_fn(const struct object_id *oid, void *);
@@ -187,6 +186,12 @@ struct object_database {
 
 struct object_database *odb_new(struct repository *repo);
 void odb_clear(struct object_database *o);
+
+/*
+ * Find backend by its object directory path. Dies in case the object directory
+ * couldn't be found.
+ */
+struct odb_alternate *odb_find_alternate(struct object_database *odb, const char *obj_dir);
 
 /*
  * Create a temporary file rooted in the object database directory, or
